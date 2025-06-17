@@ -3,7 +3,7 @@
 	import {
 		InfoCircleSolid,
 		UserCircleSolid,
-		ArrowRightFromBracketSolid
+		ArrowRightAltSolid
 	} from 'flowbite-svelte-icons';
 	import { logout } from '$lib/stores/auth.js';
 	import type { PageData } from './$types';
@@ -43,7 +43,7 @@
 						color="alternative"
 						size="sm"
 					>
-						<ArrowRightFromBracketSolid class="w-4 h-4 mr-2" />
+						<ArrowRightAltSolid class="w-4 h-4 mr-2" />
 						Выйти
 					</Button>
 				</div>
