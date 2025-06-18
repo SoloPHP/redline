@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Card, Input, Label, Alert } from 'flowbite-svelte';
+	import { Button, Card, Input, Label, Alert, Checkbox } from 'flowbite-svelte';
 	import {
 		InfoCircleSolid,
 		EyeSolid,

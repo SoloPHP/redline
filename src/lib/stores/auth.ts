@@ -80,6 +80,11 @@ export function checkAuthStatus(): void {
 	}
 }
 
+// Функция для инициализации состояния авторизации
+export function initAuthState(): void {
+	checkAuthStatus();
+}
+
 // Автоматическая проверка при загрузке
 if (browser) {
 	checkAuthStatus();
