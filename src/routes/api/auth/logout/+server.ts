@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { callPhpApi } from '$lib/server/api.js';
+import { clearAuthCookies } from '$lib/server/auth-utils.js';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ cookies, locals }) => {
@@ -7,26 +8,15 @@ export const POST: RequestHandler = async ({ cookies, locals }) => {
 		const token = cookies.get('jwt_token');
 
 		if (token) {
-			// Опционально: уведомляем PHP API о логауте
 			try {
 				await callPhpApi('/auth/logout', 'POST', {}, token);
 			} catch (error) {
-				// Игнорируем ошибки от PHP API при логауте
 				console.warn('PHP API logout error (ignored):', error);
 			}
 		}
 
-		// Удаляем все куки
-		const cookieOptions = {
-			path: '/',
-			secure: process.env.NODE_ENV === 'production',
-		};
-
-		cookies.delete('jwt_token', cookieOptions);
-		cookies.delete('logged_in', cookieOptions);
-		cookies.delete('refresh_token', cookieOptions);
-
-		// Очищаем locals
+		// Используем утилиту для очистки куки
+		clearAuthCookies(cookies);
 		locals.user = null;
 
 		return json({ success: true });

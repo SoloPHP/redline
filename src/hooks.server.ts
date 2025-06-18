@@ -1,5 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
 import { callPhpApi } from '$lib/server/api.js';
+import { clearAuthCookies, tryRefreshAndSetCookies } from '$lib/server/auth-utils.js';
 import type { User } from '$lib/types/api.js';
 
 interface MeResponse {
@@ -8,32 +9,49 @@ interface MeResponse {
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const token = event.cookies.get('jwt_token');
+	const refreshToken = event.cookies.get('refresh_token');
 
 	if (token) {
-		try {
-			// Верифицируем токен через PHP API
-			const { response, data } = await callPhpApi<MeResponse>('/auth/me', 'GET', undefined, token);
+		// Есть access token, проверяем его
+		const authResult = await verifyToken(token);
 
-			if (response.ok && data.success && data.data?.user) {
-				// Токен валидный, сохраняем данные пользователя
-				event.locals.user = {
-					id: data.data.user.id,
-					login: data.data.user.login,
-					name: data.data.user.name,
-					email: data.data.user.email,
-					role: data.data.user.role,
-				};
+		if (authResult.success && authResult.user) {
+			event.locals.user = authResult.user;
+		} else {
+			// Access token недействителен, пробуем refresh
+			const refreshSuccess = await tryRefreshAndSetCookies(refreshToken, event.cookies);
+
+			if (refreshSuccess) {
+				// Повторно проверяем с новым токеном
+				const newToken = event.cookies.get('jwt_token');
+				if (newToken) {
+					const newAuthResult = await verifyToken(newToken);
+					if (newAuthResult.success && newAuthResult.user) {
+						event.locals.user = newAuthResult.user;
+					} else {
+						clearAuthCookies(event.cookies);
+						event.locals.user = null;
+					}
+				}
 			} else {
-				// Токен недействителен, удаляем куки
-				event.cookies.delete('jwt_token', { path: '/' });
-				event.cookies.delete('logged_in', { path: '/' });
+				clearAuthCookies(event.cookies);
 				event.locals.user = null;
 			}
-		} catch (error) {
-			console.error('Auth verification error:', error);
-			// В случае ошибки также удаляем куки
-			event.cookies.delete('jwt_token', { path: '/' });
-			event.cookies.delete('logged_in', { path: '/' });
+		}
+	} else if (refreshToken) {
+		// Нет access token, но есть refresh token
+		const refreshSuccess = await tryRefreshAndSetCookies(refreshToken, event.cookies);
+
+		if (refreshSuccess) {
+			const newToken = event.cookies.get('jwt_token');
+			if (newToken) {
+				const authResult = await verifyToken(newToken);
+				if (authResult.success && authResult.user) {
+					event.locals.user = authResult.user;
+				}
+			}
+		} else {
+			clearAuthCookies(event.cookies);
 			event.locals.user = null;
 		}
 	} else {
@@ -42,3 +60,24 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	return resolve(event);
 };
+
+/**
+ * Проверяет токен через PHP API
+ */
+async function verifyToken(token: string): Promise<{
+	success: boolean;
+	user?: User;
+}> {
+	try {
+		const { response, data } = await callPhpApi<MeResponse>('/auth/me', 'GET', undefined, token);
+
+		if (response.ok && data.success && data.data?.user) {
+			return { success: true, user: data.data.user };
+		}
+
+		return { success: false };
+	} catch (error) {
+		console.error('Auth verification error:', error);
+		return { success: false };
+	}
+}
