@@ -16,9 +16,10 @@
 	interface Props {
 		user: User;
 		title?: string;
+		onToggleSidebar?: () => void;
 	}
 
-	let { user, title = 'Dashboard' }: Props = $props();
+	let { user, title = 'Dashboard', onToggleSidebar }: Props = $props();
 
 	async function handleLogout() {
 		await logout();
@@ -26,6 +27,12 @@
 
 	function toggleTheme() {
 		theme.toggle();
+	}
+
+	function handleSidebarToggle() {
+		if (onToggleSidebar) {
+			onToggleSidebar();
+		}
 	}
 </script>
 
@@ -35,6 +42,7 @@
 			<div class="flex items-center justify-start">
 				<!-- Mobile menu button -->
 				<button
+					onclick={handleSidebarToggle}
 					class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
 				>
 					<span class="sr-only">Open sidebar</span>
