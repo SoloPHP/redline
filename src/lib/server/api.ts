@@ -1,5 +1,4 @@
-// src/lib/server/api.ts
-import { ENV } from '$lib/config/environment.js';
+import { PHP_API_URL } from '$env/static/private';
 import type { ApiResponse, HttpMethod } from '$lib/types/api.js';
 
 export interface ApiCallResult<T = unknown> {
@@ -21,7 +20,7 @@ export async function callPhpApi<T = unknown>(
 		headers['Authorization'] = `Bearer ${token}`;
 	}
 
-	const url = `${ENV.apiUrl}${endpoint}`;
+	const url = `${PHP_API_URL}${endpoint}`;
 
 	const response = await fetch(url, {
 		method,
