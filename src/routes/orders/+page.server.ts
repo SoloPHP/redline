@@ -1,5 +1,5 @@
-import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { requireAuth } from '$lib/server/auth-middleware.js';
 
 // Моковые данные заказов для демонстрации
 const mockOrders = [
@@ -41,17 +41,11 @@ const mockOrders = [
 	}
 ];
 
-export const load: PageServerLoad = async ({ locals }) => {
-	// Проверяем авторизацию
-	if (!locals.user) {
-		throw redirect(302, '/login');
-	}
-
-	// В реальном приложении здесь был бы запрос к API
-	// const orders = await callPhpApi('/orders', 'GET', undefined, token);
+export const load: PageServerLoad = async (event) => {
+	const user = requireAuth(event);
 
 	return {
-		user: locals.user,
+		user,
 		orders: mockOrders
 	};
 };

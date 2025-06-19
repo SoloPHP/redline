@@ -1,8 +1,8 @@
 import { browser } from '$app/environment';
 
 /**
- * Проверяет, авторизован ли пользователь на клиенте
- * Используется для реактивности UI
+ * Проверяет, авторизован ли пользователь на клиенте по куки
+ * Может быть полезно для условного рендеринга до hydration
  */
 export function isLoggedInClient(): boolean {
 	if (!browser) return false;
@@ -16,9 +16,9 @@ export function isLoggedInClient(): boolean {
 }
 
 /**
- * Обработчик ошибок API для клиентской части
+ * Обработчик ошибок для клиентской части
  */
-export function handleAPIError(error: unknown): string {
+export function handleError(error: unknown): string {
 	if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
 		return error.message;
 	}
