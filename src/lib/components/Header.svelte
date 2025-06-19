@@ -10,7 +10,7 @@
 		CogOutline
 	} from 'flowbite-svelte-icons';
 	import { theme } from '$lib/stores/theme.js';
-	import { logout } from '$lib/stores/auth.js';
+	import { enhance } from '$app/forms';
 	import type { User } from '$lib/types/api.js';
 
 	interface Props {
@@ -20,10 +20,7 @@
 	}
 
 	let { user, title = 'Dashboard', onToggleSidebar }: Props = $props();
-
-	async function handleLogout() {
-		await logout();
-	}
+	let isLoggingOut = $state(false);
 
 	function toggleTheme() {
 		theme.toggle();
@@ -100,10 +97,26 @@
 							<span>Настройки</span>
 						</DropdownItem>
 						<hr class="my-1">
-						<DropdownItem onclick={handleLogout} class="flex items-center space-x-2 text-red-600 dark:text-red-400">
-							<ArrowRightToBracketOutline class="w-4 h-4" />
-							<span>Выйти</span>
-						</DropdownItem>
+						<form
+							method="POST"
+							action="/logout"
+							use:enhance={() => {
+								isLoggingOut = true;
+								return async ({ update }) => {
+									await update();
+								};
+							}}
+							class="block"
+						>
+							<button
+								type="submit"
+								disabled={isLoggingOut}
+								class="flex items-center space-x-2 w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50"
+							>
+								<ArrowRightToBracketOutline class="w-4 h-4" />
+								<span>{isLoggingOut ? 'Выход...' : 'Выйти'}</span>
+							</button>
+						</form>
 					</Dropdown>
 				</div>
 			</div>
