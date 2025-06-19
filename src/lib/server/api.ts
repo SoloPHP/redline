@@ -10,8 +10,11 @@ export async function callPhpApi<T = unknown>(
 	endpoint: string,
 	method: HttpMethod = 'GET',
 	body?: unknown,
-	token?: string
+	token?: string,
+	fetchFn?: typeof fetch
 ): Promise<ApiCallResult<T>> {
+	const fetchToUse = fetchFn || fetch;
+
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json',
 	};
@@ -22,7 +25,7 @@ export async function callPhpApi<T = unknown>(
 
 	const url = `${PHP_API_URL}${endpoint}`;
 
-	const response = await fetch(url, {
+	const response = await fetchToUse(url, {
 		method,
 		headers,
 		body: body ? JSON.stringify(body) : undefined,

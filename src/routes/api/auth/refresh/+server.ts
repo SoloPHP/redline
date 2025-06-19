@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { clearAuthCookies, refreshTokens, setAuthCookies } from '$lib/server/auth-utils.js';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ cookies }) => {
+export const POST: RequestHandler = async ({ cookies, fetch }) => {
 	try {
 		const refreshToken = cookies.get('refresh_token');
 
@@ -10,10 +10,10 @@ export const POST: RequestHandler = async ({ cookies }) => {
 			return json({ success: false, error: 'Refresh token not found' }, { status: 401 });
 		}
 
-		const result = await refreshTokens(refreshToken);
+		const result = await refreshTokens(refreshToken, fetch);
 
 		if (result.success && result.accessToken && result.newRefreshToken) {
-			await setAuthCookies(cookies, result.accessToken, result.newRefreshToken);
+			await setAuthCookies(cookies, result.accessToken, result.newRefreshToken, fetch);
 			return json({ success: true });
 		} else {
 			clearAuthCookies(cookies);

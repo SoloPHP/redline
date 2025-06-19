@@ -3,13 +3,13 @@ import { callPhpApi } from '$lib/server/api.js';
 import { clearAuthCookies } from '$lib/server/auth-utils.js';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ cookies, locals }) => {
+export const POST: RequestHandler = async ({ cookies, locals, fetch }) => {
 	try {
 		const token = cookies.get('jwt_token');
 
 		if (token) {
 			try {
-				await callPhpApi('/auth/logout', 'POST', {}, token);
+				await callPhpApi('/auth/logout', 'POST', {}, token, fetch);
 			} catch (error) {
 				console.warn('PHP API logout error (ignored):', error);
 			}

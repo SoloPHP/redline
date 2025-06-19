@@ -4,7 +4,7 @@ import { setAuthCookies } from '$lib/server/auth-utils.js';
 import type { RequestHandler } from './$types';
 import type { LoginRequest, LoginResponse } from '$lib/types/api.js';
 
-export const POST: RequestHandler = async ({ request, cookies }) => {
+export const POST: RequestHandler = async ({ request, cookies, fetch }) => {
 	try {
 		const body = await request.json();
 
@@ -20,7 +20,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			password: body.password
 		};
 
-		const { response, data } = await callPhpApi<LoginResponse>('/auth/login', 'POST', loginData);
+		// Используем event.fetch для запроса к PHP API
+		const { response, data } = await callPhpApi<LoginResponse>(
+			'/auth/login',
+			'POST',
+			loginData,
+			undefined,
+			fetch
+		);
 
 		if (!response.ok || !data.success || !data.data) {
 			return json(
@@ -38,8 +45,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			);
 		}
 
-		// Используем утилиту для установки куки
-		await setAuthCookies(cookies, access_token, refresh_token);
+		await setAuthCookies(cookies, access_token, refresh_token, fetch);
 
 		return json({
 			success: true,

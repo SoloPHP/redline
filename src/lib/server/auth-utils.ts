@@ -17,13 +17,19 @@ let cachedTokenSettings: TokenSettings | null = null;
 /**
  * Получает настройки токенов с кешированием
  */
-async function getTokenSettings(): Promise<TokenSettings> {
+async function getTokenSettings(fetchFn?: typeof fetch): Promise<TokenSettings> {
 	if (cachedTokenSettings) {
 		return cachedTokenSettings;
 	}
 
 	try {
-		const { response, data } = await callPhpApi<TokenSettingsResponse>('/config/token-settings', 'GET');
+		const { response, data } = await callPhpApi<TokenSettingsResponse>(
+			'/config/token-settings',
+			'GET',
+			undefined,
+			undefined,
+			fetchFn
+		);
 
 		if (response.ok && data.success && data.data) {
 			cachedTokenSettings = {
@@ -63,9 +69,10 @@ function createCookieOptions() {
 export async function setAuthCookies(
 	cookies: Cookies,
 	accessToken: string,
-	refreshToken: string
+	refreshToken: string,
+	fetchFn?: typeof fetch
 ): Promise<void> {
-	const settings = await getTokenSettings();
+	const settings = await getTokenSettings(fetchFn);
 	const cookieOptions = createCookieOptions();
 
 	cookies.set('jwt_token', accessToken, {
@@ -102,16 +109,23 @@ export function clearAuthCookies(cookies: Cookies): void {
 /**
  * Обновляет токены через PHP API
  */
-export async function refreshTokens(refreshToken: string): Promise<{
+export async function refreshTokens(
+	refreshToken: string,
+	fetchFn?: typeof fetch
+): Promise<{
 	success: boolean;
 	accessToken?: string;
 	newRefreshToken?: string;
 	error?: string;
 }> {
 	try {
-		const { response, data } = await callPhpApi<RefreshResponse>('/auth/refresh', 'POST', {
-			refresh_token: refreshToken
-		});
+		const { response, data } = await callPhpApi<RefreshResponse>(
+			'/auth/refresh',
+			'POST',
+			{ refresh_token: refreshToken },
+			undefined,
+			fetchFn
+		);
 
 		if (response.ok && data.success && data.data) {
 			const { access_token, refresh_token: newRefreshToken } = data.data;
@@ -143,14 +157,15 @@ export async function refreshTokens(refreshToken: string): Promise<{
  */
 export async function tryRefreshAndSetCookies(
 	refreshToken: string | undefined,
-	cookies: Cookies
+	cookies: Cookies,
+	fetchFn?: typeof fetch
 ): Promise<boolean> {
 	if (!refreshToken) return false;
 
-	const result = await refreshTokens(refreshToken);
+	const result = await refreshTokens(refreshToken, fetchFn);
 
 	if (result.success && result.accessToken && result.newRefreshToken) {
-		await setAuthCookies(cookies, result.accessToken, result.newRefreshToken);
+		await setAuthCookies(cookies, result.accessToken, result.newRefreshToken, fetchFn);
 		return true;
 	}
 

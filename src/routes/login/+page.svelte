@@ -7,19 +7,18 @@
 		MoonOutline,
 		SunOutline
 	} from 'flowbite-svelte-icons';
-	import { login } from '$lib/stores/auth.js';
+	import { login, isLoading } from '$lib/stores/auth.js'; // Используем обновленный store
 	import { theme } from '$lib/stores/theme.js';
 	import { goto } from '$app/navigation';
 
-	let loginForm = {
+	let loginForm = $state({
 		login: '',
 		password: ''
-	};
+	});
 
-	let loading = false;
-	let error = '';
-	let showPassword = false;
-	let rememberMe = false;
+	let error = $state('');
+	let showPassword = $state(false);
+	let rememberMe = $state(false);
 
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
@@ -29,7 +28,6 @@
 			return;
 		}
 
-		loading = true;
 		error = '';
 
 		try {
@@ -42,8 +40,6 @@
 			}
 		} catch (err) {
 			error = 'Произошла ошибка сети';
-		} finally {
-			loading = false;
 		}
 	}
 
@@ -111,7 +107,7 @@
 							required
 							placeholder="Введите ваш логин"
 							bind:value={loginForm.login}
-							disabled={loading}
+							disabled={$isLoading}
 							class="block w-full"
 						/>
 					</div>
@@ -129,14 +125,14 @@
 								required
 								placeholder="Введите ваш пароль"
 								bind:value={loginForm.password}
-								disabled={loading}
+								disabled={$isLoading}
 								class="block w-full pr-12"
 							/>
 							<button
 								type="button"
 								class="absolute inset-y-0 right-0 pr-3 flex items-center"
 								onclick={togglePasswordVisibility}
-								disabled={loading}
+								disabled={$isLoading}
 							>
 								{#if showPassword}
 									<EyeSlashSolid class="w-5 h-5 text-gray-400 hover:text-gray-600" />
@@ -148,10 +144,14 @@
 					</div>
 
 					<div class="flex items-center justify-between">
-						<Checkbox bind:checked={rememberMe} class="text-sm">
+						<Checkbox bind:checked={rememberMe} class="text-sm" disabled={$isLoading}>
 							Запомнить меня
 						</Checkbox>
-						<button type="button" class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400">
+						<button
+							type="button"
+							class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 disabled:opacity-50"
+							disabled={$isLoading}
+						>
 							Забыли пароль?
 						</button>
 					</div>
@@ -159,11 +159,11 @@
 					<Button
 						type="submit"
 						class="w-full !py-3"
-						disabled={loading}
+						disabled={$isLoading}
 						color="primary"
 						size="lg"
 					>
-						{#if loading}
+						{#if $isLoading}
 							<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -178,7 +178,10 @@
 				<div class="mt-6 text-center">
 					<p class="text-sm text-gray-600 dark:text-gray-400">
 						Нет аккаунта?
-						<button class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium">
+						<button
+							class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium disabled:opacity-50"
+							disabled={$isLoading}
+						>
 							Зарегистрироваться
 						</button>
 					</p>
