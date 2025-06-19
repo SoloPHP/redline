@@ -1,13 +1,11 @@
-import { redirect } from '@sveltejs/kit';
+// src/routes/dashboard/+page.server.ts
+import { requireAuth } from '$lib/server/auth-middleware.js';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
-	// Проверяем, авторизован ли пользователь
-	if (!locals.user) {
-		throw redirect(302, '/login');
-	}
+export const load: PageServerLoad = async (event) => {
+	const user = requireAuth(event);
 
 	return {
-		user: locals.user
+		user
 	};
 };

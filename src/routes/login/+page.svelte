@@ -84,25 +84,16 @@
 					action="?/login"
 					use:enhance={() => {
 						isSubmitting = true;
-						return async ({ result, update }) => {
-							console.log('Form result:', result);
+						return async ({ result }) => {
+						isSubmitting = false;
 
-							if (result.type === 'success' && result.data?.success) {
-								// Обновляем все данные приложения
-								await invalidateAll();
-								// Переходим на dashboard
-								await goto('/dashboard', { replaceState: true });
-							} else if (result.type === 'failure') {
-								// При ошибке обновляем форму и сбрасываем состояние загрузки
-								isSubmitting = false;
-								await update();
-							} else {
-								// Для любых других случаев
-								isSubmitting = false;
-								await update();
-							}
-						};
-					}}
+						if (result.type === 'success' && result.data?.success) {
+							// При успехе SvelteKit автоматически перенаправит через invalidation
+							goto('/dashboard');
+						}
+						// При ошибке form будет автоматически обновлена
+					};
+				}}
 					class="space-y-6"
 				>
 					<div>

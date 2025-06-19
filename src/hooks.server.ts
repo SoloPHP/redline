@@ -11,63 +11,60 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const token = event.cookies.get('jwt_token');
 	const refreshToken = event.cookies.get('refresh_token');
 
-	if (token) {
-		// Есть access token, проверяем его
-		const authResult = await verifyToken(token, event.fetch);
+	// Инициализируем пользователя как null
+	event.locals.user = null;
 
-		if (authResult.success && authResult.user) {
-			event.locals.user = authResult.user;
-		} else {
-			// Access token недействителен, пробуем refresh
-			const refreshSuccess = await tryRefreshAndSetCookies(
-				refreshToken,
-				event.cookies,
-				event.fetch
-			);
+	try {
+		if (token) {
+			// Есть access token, проверяем его
+			const authResult = await verifyToken(token, event.fetch);
 
-			if (refreshSuccess) {
-				// Повторно проверяем с новым токеном
-				const newToken = event.cookies.get('jwt_token');
-				if (newToken) {
-					const newAuthResult = await verifyToken(newToken, event.fetch);
-					if (newAuthResult.success && newAuthResult.user) {
-						event.locals.user = newAuthResult.user;
-					} else {
-						clearAuthCookies(event.cookies);
-						event.locals.user = null;
-					}
-				}
+			if (authResult.success && authResult.user) {
+				event.locals.user = authResult.user;
+			} else if (refreshToken) {
+				// Access token недействителен, пробуем refresh
+				await handleTokenRefresh(refreshToken, event);
 			} else {
+				// Нет refresh token, очищаем куки
 				clearAuthCookies(event.cookies);
-				event.locals.user = null;
 			}
+		} else if (refreshToken) {
+			// Нет access token, но есть refresh token
+			await handleTokenRefresh(refreshToken, event);
 		}
-	} else if (refreshToken) {
-		// Нет access token, но есть refresh token
-		const refreshSuccess = await tryRefreshAndSetCookies(
-			refreshToken,
-			event.cookies,
-			event.fetch // Передаем event.fetch
-		);
-
-		if (refreshSuccess) {
-			const newToken = event.cookies.get('jwt_token');
-			if (newToken) {
-				const authResult = await verifyToken(newToken, event.fetch);
-				if (authResult.success && authResult.user) {
-					event.locals.user = authResult.user;
-				}
-			}
-		} else {
-			clearAuthCookies(event.cookies);
-			event.locals.user = null;
-		}
-	} else {
+	} catch (error) {
+		console.error('Auth handler error:', error);
+		clearAuthCookies(event.cookies);
 		event.locals.user = null;
 	}
 
 	return resolve(event);
 };
+
+/**
+ * Обработка обновления токена
+ */
+async function handleTokenRefresh(refreshToken: string, event: Parameters<Handle>[0]['event']) {
+	const refreshSuccess = await tryRefreshAndSetCookies(
+		refreshToken,
+		event.cookies,
+		event.fetch
+	);
+
+	if (refreshSuccess) {
+		const newToken = event.cookies.get('jwt_token');
+		if (newToken) {
+			const authResult = await verifyToken(newToken, event.fetch);
+			if (authResult.success && authResult.user) {
+				event.locals.user = authResult.user;
+			} else {
+				clearAuthCookies(event.cookies);
+			}
+		}
+	} else {
+		clearAuthCookies(event.cookies);
+	}
+}
 
 /**
  * Проверяет токен через PHP API
@@ -85,7 +82,7 @@ async function verifyToken(
 			'GET',
 			undefined,
 			token,
-			fetchFn // Передаем event.fetch в API
+			fetchFn
 		);
 
 		if (response.ok && data.success && data.data?.user) {
