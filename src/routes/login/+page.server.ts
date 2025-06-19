@@ -2,7 +2,7 @@ import { redirect, fail } from '@sveltejs/kit';
 import { callPhpApi } from '$lib/server/api.js';
 import { setAuthCookies } from '$lib/server/auth-utils.js';
 import type { Actions, PageServerLoad } from './$types';
-import type { LoginRequest, LoginResponse } from '$lib/types/api.js';
+import type { LoginResponse } from '$lib/types/api.js';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
@@ -26,10 +26,16 @@ export const actions: Actions = {
 		}
 
 		try {
+			const requestBody = {
+				login,
+				password,
+				remember_me: rememberMe
+			};
+
 			const { response, data: apiData } = await callPhpApi<LoginResponse>(
 				'/auth/login',
 				'POST',
-				{ login, password, remember_me: rememberMe },
+				requestBody,
 				undefined,
 				fetch
 			);

@@ -10,7 +10,6 @@
 	import { enhance } from '$app/forms';
 	import { theme } from '$lib/stores/theme.js';
 	import { goto } from '$app/navigation';
-	import { invalidateAll } from '$app/navigation';
 	import type { ActionData } from './$types';
 
 	interface Props {
@@ -85,15 +84,12 @@
 					use:enhance={() => {
 						isSubmitting = true;
 						return async ({ result }) => {
-						isSubmitting = false;
-
-						if (result.type === 'success' && result.data?.success) {
-							// При успехе SvelteKit автоматически перенаправит через invalidation
-							goto('/dashboard');
-						}
-						// При ошибке form будет автоматически обновлена
-					};
-				}}
+							isSubmitting = false;
+							if (result.type === 'success' && result.data?.success) {
+								goto('/dashboard');
+							}
+						};
+					}}
 					class="space-y-6"
 				>
 					<div>

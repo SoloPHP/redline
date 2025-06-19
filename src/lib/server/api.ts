@@ -34,7 +34,7 @@ export async function callPhpApi<T = unknown>(
 	let data: ApiResponse<T>;
 	try {
 		data = await response.json() as ApiResponse<T>;
-	} catch (error) {
+	} catch {
 		// Если ответ не JSON, создаем стандартную структуру
 		data = {
 			success: response.ok,
