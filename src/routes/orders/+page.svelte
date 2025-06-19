@@ -14,7 +14,7 @@
 	}
 
 	let { data }: Props = $props();
-	let searchQuery = '';
+	let searchQuery = $state('');
 
 	function formatCurrency(amount: number): string {
 		return new Intl.NumberFormat('ru-RU', {
@@ -95,7 +95,7 @@
 	<div class="space-y-6">
 		<!-- Stats Cards -->
 		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-			{#each stats as stat}
+			{#each stats as stat (stat.title)}
 				<Card class="p-6 border {getStatColorClasses(stat.color)} shadow-sm">
 					<div class="text-center">
 						<p class="text-2xl font-bold text-gray-900 dark:text-white">

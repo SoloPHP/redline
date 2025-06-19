@@ -77,12 +77,13 @@
 
 		<!-- Stats Grid -->
 		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-			{#each stats as stat}
+			{#each stats as stat (stat.title)}
+				{@const IconComponent = stat.icon}
 				<Card class="p-6 hover:shadow-lg transition-shadow border-0 shadow-sm">
 					<div class="flex items-center">
 						<div class="flex-shrink-0">
 							<div class="w-12 h-12 rounded-xl flex items-center justify-center {getStatColorClasses(stat.color)}">
-								<svelte:component this={stat.icon} class="w-6 h-6" />
+								<IconComponent class="w-6 h-6" />
 							</div>
 						</div>
 						<div class="ml-4 flex-1">
