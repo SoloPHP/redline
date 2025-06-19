@@ -1,31 +1,5 @@
-import { dev } from '$app/environment';
+import { PHP_API_URL } from '$env/static/private';
 import type { ApiResponse, HttpMethod } from '$lib/types/api.js';
-
-// Функция для получения API URL
-function getApiUrl(): string {
-	// Пытаемся получить из переменных окружения разными способами
-	let apiUrl: string | undefined;
-
-	// Для Vercel и других платформ
-	if (typeof process !== 'undefined' && process.env.PHP_API_URL) {
-		apiUrl = process.env.PHP_API_URL;
-	}
-
-	// Fallback для разработки
-	if (!apiUrl && dev) {
-		apiUrl = 'http://localhost:8000/api';
-		console.warn('Using development API URL. Set PHP_API_URL environment variable for production.');
-	}
-
-	if (!apiUrl) {
-		throw new Error(
-			'PHP_API_URL environment variable is required. ' +
-			'Please set it in your Vercel project settings or .env file.'
-		);
-	}
-
-	return apiUrl;
-}
 
 export interface ApiCallResult<T = unknown> {
 	response: Response;
@@ -46,35 +20,26 @@ export async function callPhpApi<T = unknown>(
 		headers['Authorization'] = `Bearer ${token}`;
 	}
 
-	const url = `${getApiUrl()}${endpoint}`;
+	const url = `${PHP_API_URL}${endpoint}`;
 
+	const response = await fetch(url, {
+		method,
+		headers,
+		body: body ? JSON.stringify(body) : undefined,
+	});
+
+	let data: ApiResponse<T>;
 	try {
-		const response = await fetch(url, {
-			method,
-			headers,
-			body: body ? JSON.stringify(body) : undefined,
-		});
-
-		let data: ApiResponse<T>;
-		try {
-			data = await response.json() as ApiResponse<T>;
-		} catch (error) {
-			// Если ответ не JSON, создаем стандартную структуру
-			data = {
-				success: response.ok,
-				message: response.ok ? 'Success' : `HTTP ${response.status}: ${response.statusText}`
-			};
-		}
-
-		return { response, data };
+		data = await response.json() as ApiResponse<T>;
 	} catch (error) {
-		console.error('API call failed:', error);
-		throw new ApiError(
-			'Network error occurred',
-			0,
-			'Failed to connect to API server'
-		);
+		// Если ответ не JSON, создаем стандартную структуру
+		data = {
+			success: response.ok,
+			message: response.ok ? 'Success' : `HTTP ${response.status}: ${response.statusText}`
+		};
 	}
+
+	return { response, data };
 }
 
 export class ApiError extends Error {
