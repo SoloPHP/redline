@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Card, Input, Label, Alert, Checkbox } from 'flowbite-svelte';
+	import { Button, Card, Input, Label, Alert } from 'flowbite-svelte';
 	import {
 		InfoCircleSolid,
 		EyeSolid,
@@ -34,9 +34,9 @@
 	<title>Авторизация - Redline</title>
 </svelte:head>
 
-<div class="min-h-screen flex relative">
-	<!-- Theme toggle - fixed в правом верхнем углу -->
-	<div class="fixed top-6 right-6 z-10">
+<div class="min-h-screen flex">
+	<!-- Theme toggle - фиксированный в правом верхнем углу всего экрана -->
+	<div class="fixed top-6 right-6 z-20">
 		<Button
 			onclick={toggleTheme}
 			color="alternative"
@@ -51,9 +51,26 @@
 		</Button>
 	</div>
 
-	<!-- Left side - Login form -->
-	<div class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
-		<div class="max-w-md w-full">
+	<!-- Left side - Brand/Image -->
+	<div class="hidden lg:flex lg:w-1/3 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
+		<div class="flex items-center justify-center w-full">
+			<div class="text-center max-w-md">
+				<div class="w-32 h-32 mx-auto bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl">
+					<span class="text-white font-bold text-5xl">R</span>
+				</div>
+				<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+					Redline CRM
+				</h3>
+				<p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+					Современная система управления с защищенной авторизацией и удобным интерфейсом
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Right side - Login form (2/3 экрана) -->
+	<div class="flex-1 lg:w-2/3 flex items-center justify-center bg-white dark:bg-gray-900">
+		<div class="w-full max-w-md mx-auto px-4">
 			<!-- Form -->
 			<Card class="p-8 shadow-xl border-0">
 				<!-- Header внутри формы -->
@@ -172,25 +189,6 @@
 					</Button>
 				</form>
 			</Card>
-		</div>
-	</div>
-
-	<!-- Right side - Brand/Image -->
-	<div
-		class="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
-		<div class="flex items-center justify-center w-full">
-			<div class="text-center max-w-md">
-				<div
-					class="w-32 h-32 mx-auto bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl">
-					<span class="text-white font-bold text-5xl">R</span>
-				</div>
-				<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-					Redline CRM
-				</h3>
-				<p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-					Современная система управления с защищенной авторизацией и удобным интерфейсом
-				</p>
-			</div>
 		</div>
 	</div>
 </div>
