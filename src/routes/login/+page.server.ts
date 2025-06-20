@@ -4,6 +4,38 @@ import { setAuthCookies } from '$lib/server/auth-utils.js';
 import type { Actions, PageServerLoad } from './$types';
 import type { LoginResponse } from '$lib/types/api.js';
 
+/**
+ * Извлекает понятное сообщение об ошибке из API ответа
+ */
+function extractErrorMessage(apiData: any): string {
+	// Сначала пробуем errors
+	if (apiData.errors) {
+		// Если errors - массив, берем первый элемент
+		if (Array.isArray(apiData.errors) && apiData.errors.length > 0) {
+			return apiData.errors[0];
+		}
+
+		// Если errors - объект с полями, берем первую ошибку
+		if (typeof apiData.errors === 'object' && !Array.isArray(apiData.errors)) {
+			const firstFieldError = Object.values(apiData.errors)[0];
+			if (Array.isArray(firstFieldError) && firstFieldError.length > 0) {
+				return firstFieldError[0];
+			}
+			if (typeof firstFieldError === 'string') {
+				return firstFieldError;
+			}
+		}
+
+		// Если errors - просто строка
+		if (typeof apiData.errors === 'string') {
+			return apiData.errors;
+		}
+	}
+
+	// Если нет errors или они пустые, используем message
+	return apiData.message || 'Ошибка авторизации';
+}
+
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
 		throw redirect(302, '/dashboard');
@@ -21,7 +53,8 @@ export const actions: Actions = {
 		if (!login || !password) {
 			return fail(400, {
 				error: 'Логин и пароль обязательны',
-				login
+				login,
+				rateLimited: false
 			});
 		}
 
@@ -40,10 +73,20 @@ export const actions: Actions = {
 				fetch
 			);
 
+			// Обработка rate limit (HTTP 429)
+			if (response.status === 429) {
+				return fail(429, {
+					error: 'Превышен лимит попыток входа. Попробуйте позже.',
+					login,
+					rateLimited: true
+				});
+			}
+
 			if (!response.ok || !apiData.success || !apiData.data) {
-				return fail(401, {
-					error: apiData.message || 'Ошибка авторизации',
-					login
+				return fail(response.status === 401 ? 401 : 500, {
+					error: extractErrorMessage(apiData),
+					login,
+					rateLimited: false
 				});
 			}
 
@@ -52,13 +95,13 @@ export const actions: Actions = {
 			if (!access_token || !refresh_token) {
 				return fail(500, {
 					error: 'Не получены токены с сервера',
-					login
+					login,
+					rateLimited: false
 				});
 			}
 
 			await setAuthCookies(cookies, access_token, refresh_token, fetch);
 
-			// Возвращаем успех вместо redirect
 			return {
 				success: true,
 				user: apiData.data.user
@@ -67,7 +110,8 @@ export const actions: Actions = {
 			console.error('Login error:', error);
 			return fail(500, {
 				error: 'Внутренняя ошибка сервера',
-				login
+				login,
+				rateLimited: false
 			});
 		}
 	}

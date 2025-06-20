@@ -41,7 +41,8 @@
 		<div class="max-w-md w-full space-y-8">
 			<!-- Header -->
 			<div class="text-center">
-				<div class="mx-auto w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-4">
+				<div
+					class="mx-auto w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-4">
 					<span class="text-white font-bold text-2xl">R</span>
 				</div>
 				<h2 class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -71,10 +72,16 @@
 			<!-- Form -->
 			<Card class="p-8 shadow-xl border-0">
 				{#if form?.error}
-					<Alert color="red" class="mb-6">
-						<InfoCircleSolid slot="icon" class="w-4 h-4" />
-						<span class="font-medium">Ошибка!</span>
-						{form.error}
+					<Alert color={form.rateLimited ? "yellow" : "red"} class="mb-6">
+						<div class="flex items-center">
+							<InfoCircleSolid class="w-4 h-4 mr-2" />
+							<div>
+								<span class="font-medium">
+									{form.rateLimited ? "Слишком много попыток!" : "Ошибка!"}
+								</span>
+								{form.error}
+							</div>
+						</div>
 					</Alert>
 				{/if}
 
@@ -83,10 +90,14 @@
 					action="?/login"
 					use:enhance={() => {
 						isSubmitting = true;
-						return async ({ result }) => {
+						return async ({ result, update }) => {
 							isSubmitting = false;
+
 							if (result.type === 'success' && result.data?.success) {
 								goto('/dashboard');
+							} else {
+								// Обязательно вызываем update для обновления form data
+								await update();
 							}
 						};
 					}}
@@ -162,9 +173,11 @@
 						size="lg"
 					>
 						{#if isSubmitting}
-							<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+							<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+									 viewBox="0 0 24 24">
 								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								<path class="opacity-75" fill="currentColor"
+											d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 							</svg>
 							Вход...
 						{:else}
@@ -189,10 +202,12 @@
 	</div>
 
 	<!-- Right side - Brand/Image -->
-	<div class="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
+	<div
+		class="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
 		<div class="flex items-center justify-center w-full">
 			<div class="text-center max-w-md">
-				<div class="w-32 h-32 mx-auto bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl">
+				<div
+					class="w-32 h-32 mx-auto bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl">
 					<span class="text-white font-bold text-5xl">R</span>
 				</div>
 				<h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
