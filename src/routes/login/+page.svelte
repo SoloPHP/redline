@@ -19,7 +19,6 @@
 	let { form }: Props = $props();
 
 	let showPassword = $state(false);
-	let rememberMe = $state(false);
 	let isSubmitting = $state(false);
 
 	function togglePasswordVisibility() {
@@ -35,42 +34,41 @@
 	<title>Авторизация - Redline</title>
 </svelte:head>
 
-<div class="min-h-screen flex">
+<div class="min-h-screen flex relative">
+	<!-- Theme toggle - fixed в правом верхнем углу -->
+	<div class="fixed top-6 right-6 z-10">
+		<Button
+			onclick={toggleTheme}
+			color="alternative"
+			size="sm"
+			class="!p-2 shadow-lg"
+		>
+			{#if $theme === 'dark'}
+				<SunOutline class="w-5 h-5" />
+			{:else}
+				<MoonOutline class="w-5 h-5" />
+			{/if}
+		</Button>
+	</div>
+
 	<!-- Left side - Login form -->
 	<div class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
-		<div class="max-w-md w-full space-y-8">
-			<!-- Header -->
-			<div class="text-center">
-				<div
-					class="mx-auto w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-4">
-					<span class="text-white font-bold text-2xl">R</span>
-				</div>
-				<h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-					Добро пожаловать
-				</h2>
-				<p class="mt-2 text-gray-600 dark:text-gray-400">
-					Войдите в свой аккаунт
-				</p>
-			</div>
-
-			<!-- Theme toggle -->
-			<div class="flex justify-center">
-				<Button
-					onclick={toggleTheme}
-					color="alternative"
-					size="sm"
-					class="!p-2"
-				>
-					{#if $theme === 'dark'}
-						<SunOutline class="w-5 h-5" />
-					{:else}
-						<MoonOutline class="w-5 h-5" />
-					{/if}
-				</Button>
-			</div>
-
+		<div class="max-w-md w-full">
 			<!-- Form -->
 			<Card class="p-8 shadow-xl border-0">
+				<!-- Header внутри формы -->
+				<div class="text-center mb-8">
+					<div
+						class="mx-auto w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-4">
+						<span class="text-white font-bold text-2xl">R</span>
+					</div>
+					<h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+						Добро пожаловать
+					</h2>
+					<p class="mt-2 text-gray-600 dark:text-gray-400">
+						Войдите в свой аккаунт
+					</p>
+				</div>
 				{#if form?.error}
 					<Alert color={form.rateLimited ? "yellow" : "red"} class="mb-6">
 						<div class="flex items-center">
@@ -150,20 +148,8 @@
 						</div>
 					</div>
 
-					<input type="hidden" name="remember_me" value={rememberMe ? 'true' : 'false'} />
-
-					<div class="flex items-center justify-between">
-						<Checkbox bind:checked={rememberMe} class="text-sm" disabled={isSubmitting}>
-							Запомнить меня
-						</Checkbox>
-						<button
-							type="button"
-							class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 disabled:opacity-50"
-							disabled={isSubmitting}
-						>
-							Забыли пароль?
-						</button>
-					</div>
+					<!-- Скрытое поле для remember_me (всегда false) -->
+					<input type="hidden" name="remember_me" value="false" />
 
 					<Button
 						type="submit"
@@ -185,18 +171,6 @@
 						{/if}
 					</Button>
 				</form>
-
-				<div class="mt-6 text-center">
-					<p class="text-sm text-gray-600 dark:text-gray-400">
-						Нет аккаунта?
-						<button
-							class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium disabled:opacity-50"
-							disabled={isSubmitting}
-						>
-							Зарегистрироваться
-						</button>
-					</p>
-				</div>
 			</Card>
 		</div>
 	</div>

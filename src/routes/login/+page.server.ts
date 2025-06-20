@@ -1,6 +1,6 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { setAuthCookies } from '$lib/server/auth-utils.js';
-import { apiRequest, createFailResponse } from '$lib/server/api-helpers.js';
+import { apiRequest, createFailResponse } from '$lib/server/api.js';
 import type { Actions, PageServerLoad } from './$types';
 import type { LoginResponse } from '$lib/types/api.js';
 
@@ -16,7 +16,6 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const login = data.get('login')?.toString();
 		const password = data.get('password')?.toString();
-		const rememberMe = data.get('remember_me')?.toString() === 'true';
 
 		if (!login || !password) {
 			return fail(400, {
@@ -29,13 +28,21 @@ export const actions: Actions = {
 		const result = await apiRequest<LoginResponse>(
 			'/auth/login',
 			'POST',
-			{ login, password, remember_me: rememberMe },
+			{ login, password },
 			undefined,
 			fetch
 		);
 
 		if (!result.success) {
 			return createFailResponse(result, { login });
+		}
+
+		if (!result.data) {
+			return fail(500, {
+				error: 'Нет данных в ответе сервера',
+				login,
+				rateLimited: false
+			});
 		}
 
 		const { access_token, refresh_token } = result.data;

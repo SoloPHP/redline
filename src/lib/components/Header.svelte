@@ -3,7 +3,6 @@
 	import {
 		MoonOutline,
 		SunOutline,
-		BellOutline,
 		ChevronDownOutline,
 		UserCircleOutline,
 		ArrowRightToBracketOutline,
@@ -69,17 +68,11 @@
 					{/if}
 				</Button>
 
-				<!-- Notifications -->
-				<Button color="alternative" size="sm" class="!p-2 relative">
-					<BellOutline class="w-5 h-5" />
-					<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
-				</Button>
-
 				<!-- User menu -->
 				<div class="relative">
-					<Button color="alternative" class="flex items-center space-x-2 !px-3">
-						<Avatar size="sm" src="" class="!w-7 !h-7">
-							<UserCircleOutline class="w-7 h-7 text-gray-400" />
+					<Button color="alternative" class="flex items-center space-x-2 !px-3 !py-2">
+						<Avatar size="sm" src="" class="!w-8 !h-8">
+							<UserCircleOutline class="w-8 h-8 text-gray-400" />
 						</Avatar>
 						<span class="hidden sm:block text-sm font-medium text-gray-900 dark:text-white">
 							{user.login}
@@ -87,36 +80,60 @@
 						<ChevronDownOutline class="w-4 h-4" />
 					</Button>
 
-					<Dropdown class="w-44">
-						<DropdownItem class="flex items-center space-x-2">
-							<UserCircleOutline class="w-4 h-4" />
-							<span>Профиль</span>
-						</DropdownItem>
-						<DropdownItem class="flex items-center space-x-2">
-							<CogOutline class="w-4 h-4" />
-							<span>Настройки</span>
-						</DropdownItem>
-						<hr class="my-1">
-						<form
-							method="POST"
-							action="/logout"
-							use:enhance={() => {
-								isLoggingOut = true;
-								return async ({ update }) => {
-									await update();
-								};
-							}}
-							class="block"
-						>
-							<button
-								type="submit"
-								disabled={isLoggingOut}
-								class="flex items-center space-x-2 w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50"
+					<Dropdown class="w-56 p-2 shadow-xl border-0 bg-white dark:bg-gray-800 rounded-xl">
+						<!-- User info section -->
+						<div class="px-3 py-3 border-b border-gray-100 dark:border-gray-700">
+							<div class="flex items-center space-x-3">
+								<Avatar size="sm" src="" class="!w-10 !h-10">
+									<UserCircleOutline class="w-10 h-10 text-gray-400" />
+								</Avatar>
+								<div class="flex-1 min-w-0">
+									<p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+										{user.login}
+									</p>
+									<p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+										{user.email || 'Пользователь'}
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Menu items -->
+						<div class="py-2">
+							<DropdownItem class="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+								<UserCircleOutline class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+								<span>Мой профиль</span>
+							</DropdownItem>
+
+							<DropdownItem class="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+								<CogOutline class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+								<span>Настройки</span>
+							</DropdownItem>
+						</div>
+
+						<!-- Logout section -->
+						<div class="border-t border-gray-100 dark:border-gray-700 pt-2">
+							<form
+								method="POST"
+								action="/logout"
+								use:enhance={() => {
+									isLoggingOut = true;
+									return async ({ update }) => {
+										await update();
+									};
+								}}
+								class="block"
 							>
-								<ArrowRightToBracketOutline class="w-4 h-4" />
-								<span>{isLoggingOut ? 'Выход...' : 'Выйти'}</span>
-							</button>
-						</form>
+								<button
+									type="submit"
+									disabled={isLoggingOut}
+									class="flex items-center space-x-3 w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+								>
+									<ArrowRightToBracketOutline class="w-4 h-4" />
+									<span>{isLoggingOut ? 'Выход...' : 'Выйти из системы'}</span>
+								</button>
+							</form>
+						</div>
 					</Dropdown>
 				</div>
 			</div>
